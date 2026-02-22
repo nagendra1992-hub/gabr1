@@ -44,3 +44,11 @@ jobs:
     steps:
       - name: Deploy Application
         run: echo "Deploying to production server..."
+
+
+  info:
+     runs-on: ubuntu-latest
+     steps:
+       - name: Output of the Job
+         run: echo "${{ toJson(github) }}" 
+
