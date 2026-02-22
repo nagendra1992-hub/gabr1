@@ -4,17 +4,41 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: get code
+      - name: Checkout Code
         uses: actions/checkout@v3
-      - name: Set up nodejs
+
+      - name: Setup NodeJS
         uses: actions/setup-node@v3
         with:
           node-version: 18
-      - name: Install dependencies
+
+      - name: Install Dependencies
         run: npm install
-      - name: Run tests
-        run: npm test
-      - name: Build
+
+      - name: Build Application
         run: npm run build
-      - name: Deploy
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Tests
+        run: npm test
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Application
         run: echo "Deploying to production server..."
