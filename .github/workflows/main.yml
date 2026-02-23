@@ -49,12 +49,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-     - name: Artifact upload
-       uses: actions/download-artifact@v4
-       with:
+      - name: Artifact upload
+        uses: actions/download-artifact@v4
+        with:
           name: artifact-1
           path: |
              package*
+             
       - name: Deploy Application
         run: echo "Deploying to production server..."
 
