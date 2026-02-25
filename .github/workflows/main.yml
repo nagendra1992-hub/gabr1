@@ -1,39 +1,46 @@
 name: project2
-on: push
+on:
+  push:
 jobs:
-  checkout:
-    runs-on: ubuntu-latest
-    steps:
-      - name: get code
-        uses: actions/checkout@v3
-  setup:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up nodejs
-        uses: actions/setup-node@v3
-
-        with:
-          node-version: 18
-  install-dep:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install dependencies
-        run: npm install
-        
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run tests
-        run: npm test
-        
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Build
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Application
         run: npm run build
-        
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Tests
+        run: npm test
+
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Deploy
+      - name: Deploy Application
         run: echo "Deploying to production server..."
+      
