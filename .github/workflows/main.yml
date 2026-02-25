@@ -6,21 +6,34 @@ jobs:
     steps:
       - name: get code
         uses: actions/checkout@v3
-   setup:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
       - name: Set up nodejs
         uses: actions/setup-node@v3
 
         with:
           node-version: 18
-    install-dep:
+  install-dep:
+    runs-on: ubuntu-latest
+    steps:
       - name: Install dependencies
         run: npm install
-    test:
+        
+  test:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run tests
         run: npm test
-    build:
+        
+  build:
+    runs-on: ubuntu-latest
+    steps:
       - name: Build
         run: npm run build
-    deploy:
+        
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy
         run: echo "Deploying to production server..."
