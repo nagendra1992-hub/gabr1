@@ -1,55 +1,88 @@
-name: project2
-on: 
+name: CI-CD Pipeline
+
+on:
   push:
     branches:
-      - "dev-1"
+      - main
+  workflow_dispatch:
+
+env:
+  APP_PORT: 3000
+  IMAGE_NAME: gabr1
+  CONTAINER_NAME: gabr1_app
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Setup NodeJS
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Application
-        run: npm run build
-
-  test:
-    needs: build
+  build-test-package-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
 
-      - name: Setup NodeJS
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+    # 1️⃣ Checkout
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: npm install
+    # 2️⃣ Setup Node
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
 
-      - name: Run Tests
-        run: npm test
+    - name: Install Dependencies
+      run: npm ci
 
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
+    # 3️⃣ Clean
+    - name: Clean Old Build
+      run: rm -rf dist || true
 
-    steps:
-      - name: Deploy Application
-        run: echo "Deploying to production server..."
-  info:
-     runs-on: ubuntu-latest
-     steps:
-       - name: Output of the Job
-         run: echo "${{ toJson(github) }}" 
-      
+    # 4️⃣ Build
+    - name: Build Application
+      run: npm run build
+
+    # 5️⃣ Test
+    - name: Run Tests
+      run: npm test
+
+    # 6️⃣ Package - Build Docker Image
+    - name: Build Docker Image
+      run: docker build -t $IMAGE_NAME:${{ github.sha }} .
+
+    # 7️⃣ Deploy - Run Container on Port 3000
+    - name: Stop Old Container (if exists)
+      run: |
+        docker stop $CONTAINER_NAME || true
+        docker rm $CONTAINER_NAME || true
+
+    - name: Run New Container
+      run: |
+        docker run -d \
+          -p $APP_PORT:$APP_PORT \
+          --name $CONTAINER_NAME \
+          $IMAGE_NAME:${{ github.sha }}
+
+    # Verify container is running
+    - name: Verify Deployment
+      run: |
+        sleep 10
+        curl -f http://localhost:${{ env.APP_PORT }} || exit 1
+        echo "Application is running successfully on port 3000"
+
+    # 8️⃣ Email Notification
+    - name: Send Email Notification
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: ${{ secrets.SMTP_HOST }}
+        server_port: ${{ secrets.SMTP_PORT }}
+        username: ${{ secrets.SMTP_USER }}
+        password: ${{ secrets.SMTP_PASS }}
+        subject: "GitHub Actions Pipeline Status"
+        to: ${{ secrets.NOTIFY_EMAIL }}
+        from: ${{ secrets.SMTP_USER }}
+        body: |
+          Pipeline Status: ${{ job.status }}
+          Repository: ${{ github.repository }}
+          Commit: ${{ github.sha }}
+          Branch: ${{ github.ref_name }}
+
+    # 9️⃣ Cleanup
+    - name: Cleanup Docker Images
+      run: docker image prune -f
