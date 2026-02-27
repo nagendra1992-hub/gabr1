@@ -2,7 +2,7 @@
 FROM node:20-alpine AS builder
 
 WORKDIR /app
-
+ 
 # Copy dependency files first (for better caching)
 COPY package*.json ./
 
