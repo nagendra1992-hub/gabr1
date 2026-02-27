@@ -7,7 +7,7 @@ on:
 
 env:
   APP_PORT: 3000
-  IMAGE_NAME: gabr1
+  IMAGE_NAME: rahamshaik/gabrimage
   CONTAINER_NAME: gabr1_app
 
 jobs:
@@ -41,22 +41,48 @@ jobs:
     - name: Run Tests
       run: npm test
 
-    # 6️⃣ Package - Build Docker Image
+    # 6️⃣ Build Docker Image
     - name: Build Docker Image
       run: docker build -t $IMAGE_NAME:${{ github.sha }} .
 
-    - name: tag to dockerhub
-      run: docker tag $IMAGE_NAME:${{ github.sha }} rahamshaik/gabrimage
+    # 7️⃣ Login to DockerHub
+    - name: Login to DockerHub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USER }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-     - name: Dockerlogin
-      run: docker login -u ${{ docker_user }} -p ${{ docker_password }}
+    # 8️⃣ Push Image
+    - name: Push Image to DockerHub
+      run: |
+        docker push $IMAGE_NAME:${{ github.sha }}
+        docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:latest
+        docker push $IMAGE_NAME:latest
 
-    - name: push to dockerhub
-      run: docker push rahamshaik/gabtimage
+    # 9️⃣ Deploy Container (inside runner for validation)
+    - name: Stop Old Container
+      run: |
+        docker stop $CONTAINER_NAME || true
+        docker rm $CONTAINER_NAME || true
 
-    
-    # 8️⃣ Email Notification
+    - name: Run New Container
+      run: |
+        docker run -d \
+          -p $APP_PORT:$APP_PORT \
+          --name $CONTAINER_NAME \
+          $IMAGE_NAME:${{ github.sha }}
+
+    # 🔎 Verify Application Running
+    - name: Verify Deployment
+      run: |
+        sleep 15
+        docker logs $CONTAINER_NAME
+        curl -f http://localhost:${{ env.APP_PORT }} || exit 1
+        echo "Application is running successfully"
+
+    # 🔔 Email Notification
     - name: Send Email Notification
+      if: always()
       uses: dawidd6/action-send-mail@v3
       with:
         server_address: ${{ secrets.SMTP_HOST }}
@@ -72,4 +98,6 @@ jobs:
           Commit: ${{ github.sha }}
           Branch: ${{ github.ref_name }}
 
- 
+    # 🧹 Cleanup
+    - name: Cleanup Docker Images
+      run: docker image prune -f
