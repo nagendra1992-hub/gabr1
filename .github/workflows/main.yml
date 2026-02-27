@@ -52,24 +52,9 @@ jobs:
       run: docker login -u ${{ docker_user }} -p ${{ docker_password }}
 
     - name: push to dockerhub
-      run: docker push rahamshaik/gabtimage
+      run: docker push rahamshaik/gabrimage
 
     
-    # 8️⃣ Email Notification
-    - name: Send Email Notification
-      uses: dawidd6/action-send-mail@v3
-      with:
-        server_address: ${{ secrets.SMTP_HOST }}
-        server_port: ${{ secrets.SMTP_PORT }}
-        username: ${{ secrets.SMTP_USER }}
-        password: ${{ secrets.SMTP_PASS }}
-        subject: "GitHub Actions Pipeline Status"
-        to: ${{ secrets.NOTIFY_EMAIL }}
-        from: ${{ secrets.SMTP_USER }}
-        body: |
-          Pipeline Status: ${{ job.status }}
-          Repository: ${{ github.repository }}
-          Commit: ${{ github.sha }}
-          Branch: ${{ github.ref_name }}
+  
 
  
