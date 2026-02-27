@@ -63,8 +63,7 @@ jobs:
     - name: Verify Deployment
       run: |
         sleep 10
-        curl -f http://localhost:${{ env.APP_PORT }} || exit 1
-        echo "Application is running successfully on port 3000"
+        curl -f http://localhost:${{ env.APP_PORT }} 
 
     # 8️⃣ Email Notification
     - name: Send Email Notification
