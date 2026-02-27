@@ -45,26 +45,16 @@ jobs:
     - name: Build Docker Image
       run: docker build -t $IMAGE_NAME:${{ github.sha }} .
 
-    # 7️⃣ Deploy - Run Container on Port 3000
-    - name: Stop Old Container (if exists)
-      run: |
-        docker stop $CONTAINER_NAME || true
-        docker rm $CONTAINER_NAME || true
+    - name: tag to dockerhub
+      run: docker tag $IMAGE_NAME:${{ github.sha }} rahamshaik/gabrimage
 
-    - name: Run New Container
-      run: |
-        docker run -d \
-          -p $APP_PORT:$APP_PORT \
-          --name $CONTAINER_NAME \
-          $IMAGE_NAME:${{ github.sha }}
+     - name: Dockerlogin
+      run: docker login -u ${{ docker_user }} -p ${{ docker_password }}
 
-    # Verify container is running
-    - name: Verify Deployment
-      run: |
-        sleep 10
-        curl -f http://localhost:${{ env.APP_PORT }} || exit 1
-        echo "Application is running successfully on port 3000"
+    - name: push to dockerhub
+      run: docker push rahamshaik/gabtimage
 
+    
     # 8️⃣ Email Notification
     - name: Send Email Notification
       uses: dawidd6/action-send-mail@v3
@@ -82,6 +72,4 @@ jobs:
           Commit: ${{ github.sha }}
           Branch: ${{ github.ref_name }}
 
-    # 9️⃣ Cleanup
-    - name: Cleanup Docker Images
-      run: docker image prune -f
+ 
