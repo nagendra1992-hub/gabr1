@@ -1,18 +1,19 @@
+
 # ---------- Stage 1: Build ----------
 FROM node:20-alpine AS builder
 
 WORKDIR /app
- 
-# Copy dependency files first (for better caching)
+
+# Copy dependency files first (better layer caching)
 COPY package*.json ./
 
-# Install dependencies
+# Install all dependencies (including devDependencies for build)
 RUN npm ci
 
-# Copy rest of the code
+# Copy source code
 COPY . .
 
-# Build application
+# Build the application
 RUN npm run build
 
 
@@ -21,17 +22,24 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Set environment
+# Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy only necessary files from builder
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
+# Copy only package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --only=production
+
+# Copy built files from builder stage
 COPY --from=builder /app/dist ./dist
+
+# Use non-root user for security
+USER node
 
 # Expose application port
 EXPOSE 3000
 
 # Start application
-CMD ["npm", "start"]
+CMD ["node", "dist/index.js"]
