@@ -7,7 +7,7 @@ on:
 
 env:
   APP_PORT: 3000
-  IMAGE_NAME: rahamshaik/gabrimage
+  IMAGE_NAME: nagendra915/gabrimage
   CONTAINER_NAME: gabr1_app
 
 jobs:
